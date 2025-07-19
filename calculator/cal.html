@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Basic Calculator</title>
+    <link rel="stylesheet" href="style.css">
+    
+</head>
+<body>
+    <div class="calculator">
+        <div class="display" id="display">0</div>
+        <div class="buttons">
+            <button class="clear" id="clear">C</button>
+            <button class="operator" data-op="/">÷</button>
+            <button class="operator" data-op="*">×</button>
+            <button class="operator" data-op="-">−</button>
+            <button data-num="7">7</button>
+            <button data-num="8">8</button>
+            <button data-num="9">9</button>
+            <button class="operator" data-op="+">+</button>
+            <button data-num="4">4</button>
+            <button data-num="5">5</button>
+            <button data-num="6">6</button>
+            <button class="equals" id="equals" style="grid-row: 4 / span 2; grid-column: 4; height: 100%;">=</button>
+             <button id="backspace" style="grid-column: 4;">⌫</button>
+            <button data-num="1">1</button>
+            <button data-num="2">2</button>
+            <button data-num="3">3</button>
+            <button data-num="0" style="grid-column: 1 / span 2;">0</button>
+            <button data-num=".">.</button>
+           
+        </div>
+    </div>
+    <script>
+        const display = document.getElementById('display');
+        const buttons = document.querySelectorAll('button');
+        let current = '';
+        let operator = '';
+        let firstOperand = null;
+        let waitingForSecondOperand = false;
+
+        function updateDisplay(value) {
+            display.textContent = value;
+        }
+
+        function clearCalculator() {
+            current = '';
+            operator = '';
+            firstOperand = null;
+            waitingForSecondOperand = false;
+            updateDisplay('0');
+        }
+
+        function inputNumber(num) {
+            if (waitingForSecondOperand) {
+                current = num;
+                waitingForSecondOperand = false;
+            } else {
+                if (num === '.' && current.includes('.')) return;
+                if (current === '0' && num !== '.') {
+                    current = num;
+                } else {
+                    current += num;
+                }
+            }
+            updateDisplay(current);
+        }
+
+        function inputOperator(op) {
+            if (operator && waitingForSecondOperand) {
+                operator = op;
+                return;
+            }
+            if (firstOperand === null && current !== '') {
+                firstOperand = parseFloat(current);
+            } else if (operator) {
+                const result = performCalculation();
+                updateDisplay(result);
+                firstOperand = result;
+            }
+            operator = op;
+            waitingForSecondOperand = true;
+        }
+
+        function performCalculation() {
+            const secondOperand = parseFloat(current);
+            if (operator === '+') return (firstOperand + secondOperand).toString();
+            if (operator === '-') return (firstOperand - secondOperand).toString();
+            if (operator === '*') return (firstOperand * secondOperand).toString();
+            if (operator === '/') {
+                if (secondOperand === 0) return 'Error';
+                return (firstOperand / secondOperand).toString();
+            }
+            return current;
+        }
+
+        function handleEquals() {
+            if (!operator || waitingForSecondOperand) return;
+            const result = performCalculation();
+            updateDisplay(result);
+            current = result;
+            operator = '';
+            firstOperand = null;
+            waitingForSecondOperand = false;
+        }
+
+        buttons.forEach(btn => {
+            if (btn.dataset.num !== undefined) {
+                btn.addEventListener('click', () => inputNumber(btn.dataset.num));
+            } else if (btn.dataset.op !== undefined) {
+                btn.addEventListener('click', () => inputOperator(btn.dataset.op));
+            } else if (btn.id === 'clear') {
+                btn.addEventListener('click', clearCalculator);
+            } else if (btn.id === 'equals') {
+                btn.addEventListener('click', handleEquals);
+            } else if (btn.id === 'backspace') {
+                btn.addEventListener('click', () => {
+                    if (current.length > 0) {
+                        current = current.slice(0, -1);
+                        updateDisplay(current || '0');
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+</html>
